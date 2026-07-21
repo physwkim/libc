@@ -1,3 +1,8 @@
+// Every item in this file that names a prelude type is
+// `#[cfg(not(target_os = "rtems"))]` -- RTEMS overrides all of them in
+// `newlib/rtems`. The import must carry the same gate or it is an unused
+// import when compiling for RTEMS.
+#[cfg(not(target_os = "rtems"))]
 use crate::prelude::*;
 
 // RTEMS overrides this in `newlib/rtems`; see the comment there.
