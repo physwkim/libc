@@ -2489,3 +2489,21 @@ cfg_if! {
         // Unknown target_arch
     }
 }
+
+// Always-failing shims, matching the shape libc shipped through 0.2.186.
+// MEASURED: VxWorks defines NONE of pread/pwrite/killpg -- nm --defined-only
+// over every sysroot .a/.so and over the prebuilt vxWorks kernel returns 0
+// for all three.  They therefore cannot be extern declarations: a decl only
+// links while dead-code elimination happens to drop the call.  std imports
+// pread/pwrite in sys/fd/unix.rs and calls killpg in sys/process/unix/vxworks.rs.
+pub fn pread(_fd: c_int, _buf: *mut c_void, _count: size_t, _offset: off_t) -> ssize_t {
+    -1
+}
+
+pub fn pwrite(_fd: c_int, _buf: *const c_void, _count: size_t, _offset: off_t) -> ssize_t {
+    -1
+}
+
+pub fn killpg(_pgrp: pid_t, _signo: c_int) -> c_int {
+    -1
+}
