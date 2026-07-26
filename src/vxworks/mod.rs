@@ -2507,3 +2507,22 @@ pub fn pwrite(_fd: c_int, _buf: *const c_void, _count: size_t, _offset: off_t) -
 pub fn killpg(_pgrp: pid_t, _signo: c_int) -> c_int {
     -1
 }
+
+// getentropy(3) over VxWorks randABytes().
+//
+// MEASURED on wrsdk-vxworks7-qemu-1.17.0: `getentropy` and `arc4random_buf` are
+// defined nowhere in the SDK (nm --defined-only over every sysroot .a/.so and
+// over the prebuilt kernel returns 0 for both).  The platforms entropy API is
+//     randomNumGen.h:27  STATUS randABytes (unsigned char *randBuf, int numOfBytes);
+// which returns OK(0)/ERROR(-1) -- the same convention getentropy uses, and it
+// reports failure rather than returning void, which is the property the caller
+// in epics-pva-rs/src/server_native/search_engine.rs selected getentropy for.
+// (randABytes is already declared by this module -- reused, not redeclared.)
+
+pub unsafe fn getentropy(buf: *mut c_void, buflen: size_t) -> c_int {
+    // getentropy(3) is specified to fail for buflen > 256.
+    if buflen > 256 {
+        return -1;
+    }
+    unsafe { randABytes(buf.cast::<u8>(), buflen as c_int) }
+}
